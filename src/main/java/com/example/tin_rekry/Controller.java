@@ -1,6 +1,5 @@
 package com.example.tin_rekry;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,13 +9,16 @@ import java.util.List;
 
 @RestController
 public class Controller {
-    @Autowired
-    DataService dataService;
+    private final DataService dataService;
+
+    public Controller(DataService dataService) {
+        this.dataService = dataService;
+    }
 
     @PostMapping("/create")
-    public ResponseEntity<Thing> Create(@RequestBody Thing thing) {
+    public ResponseEntity<Thing> create(@RequestBody Thing thing) {
         try {
-            dataService.AddToDb(thing);
+            dataService.addToDb(thing);
         } catch (InvalidNameException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
@@ -24,27 +26,25 @@ public class Controller {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<Thing>> Search(@RequestBody Thing thing) {
-        return ResponseEntity.ok(dataService.SearchDb(thing.getName()));
+    public ResponseEntity<List<Thing>> search(@RequestBody Thing thing) {
+        return ResponseEntity.ok(dataService.searchDb(thing.getName()));
     }
 
     @PostMapping("/update")
-    public ResponseEntity<Thing> Update(@RequestBody Thing thing) {
+    public ResponseEntity<Thing> update(@RequestBody Thing thing) {
         try {
-            dataService.UpdateThing(thing);
+            return ResponseEntity.ok(dataService.updateThing(thing));
         } catch (InvalidNameException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (NoSuchFieldException e2) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        return ResponseEntity.ok(thing);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity Delete(@RequestBody Thing thing) {
-        System.out.println(thing.getId());
+    public ResponseEntity delete(@RequestBody Thing thing) {
         try {
-            dataService.DeleteThing(thing.getId());
+            dataService.deleteThing(thing.getId());
         } catch (NoSuchFieldException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }

@@ -11,10 +11,14 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-test")
     compile("com.h2database:h2")
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('org.mockito:mockito-junit-jupiter:2.23.0')
 }

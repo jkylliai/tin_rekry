@@ -1,6 +1,5 @@
 package com.example.tin_rekry;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.naming.InvalidNameException;
@@ -10,18 +9,21 @@ import java.util.Optional;
 
 @Service
 public class DataService {
-    @Autowired
-    private ThingRepository repo;
+    private final ThingRepository repo;
 
-    public void AddToDb(Thing thing) throws InvalidNameException {
-        if (NameIsInvalid(thing.getName())) {
+    public DataService(ThingRepository repo) {
+        this.repo = repo;
+    }
+
+    public void addToDb(Thing thing) throws InvalidNameException {
+        if (nameIsInvalid(thing.getName())) {
             throw new InvalidNameException();
         }
         thing.setName(thing.getName().toLowerCase());
         repo.save(thing);
     }
 
-    private boolean NameIsInvalid(String name) {
+    private boolean nameIsInvalid(String name) {
         if (name == null) {
             return true;
         }
@@ -29,8 +31,8 @@ public class DataService {
     }
 
 
-    public void UpdateThing(Thing thing) throws NoSuchFieldException, InvalidNameException {
-        if (NameIsInvalid(thing.getName())) {
+    public Thing updateThing(Thing thing) throws NoSuchFieldException, InvalidNameException {
+        if (nameIsInvalid(thing.getName())) {
             throw new InvalidNameException();
         }
         Optional<Thing> optional = repo.findById(thing.getId());
@@ -39,10 +41,10 @@ public class DataService {
         }
         Thing thingInDB = optional.get();
         thingInDB.setName(thing.getName().toLowerCase());
-        repo.save(thingInDB);
+        return repo.save(thingInDB);
     }
 
-    public void DeleteThing(long id) throws NoSuchFieldException {
+    public void deleteThing(long id) throws NoSuchFieldException {
         Optional<Thing> optional = repo.findById(id);
         if (!optional.isPresent()) {
             throw new NoSuchFieldException();
@@ -50,7 +52,7 @@ public class DataService {
         repo.deleteById(id);
     }
 
-    public List<Thing> SearchDb(String name) {
+    public List<Thing> searchDb(String name) {
         name = name.toLowerCase();
         Iterable<Thing> q = repo.findByName("%" + name + "%");
         List<Thing> things = new ArrayList<Thing>();
