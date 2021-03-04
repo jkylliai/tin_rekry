@@ -117,9 +117,9 @@ public class DataServiceTest {
             dataService.updateThing(new Thing(newName,123));
             fail("Did not throw exception");
         } catch (NoSuchFieldException e) {
-            fail("Invalid name");
+            //Pass
         } catch (InvalidNameException e) {
-            fail("No item with that id in DB");
+            fail("Invalid name");
         }
     }
 
