@@ -2,6 +2,7 @@ package com.example.tin_rekry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -12,10 +13,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import javax.naming.InvalidNameException;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,7 +41,7 @@ public class ControllerTest {
     @MockBean
     private DataService dataService;
 
-    private Controller controller = new Controller(dataService);
+    private ArgumentCaptor<Thing> argumentCaptor = ArgumentCaptor.forClass(Thing.class);
 
     @Test
     public void createTestReturn200() throws Exception {
@@ -49,6 +52,9 @@ public class ControllerTest {
             .andExpect(jsonPath("name", is("test")))
             .andExpect(jsonPath("id", is(0)))
             .andExpect(jsonPath("creationTime",containsString(LocalDate.now().toString())));
+
+        verify(dataService).addToDb(argumentCaptor.capture());
+        assertEquals("test", argumentCaptor.getValue().getName());
     }
 
     @Test
@@ -93,7 +99,11 @@ public class ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("name", is("newName")))
                 .andExpect(jsonPath("id", is(1)))
-                .andExpect(jsonPath("creationTime",containsString(thing.getCreationTime().toString().substring(0,27))));
+                .andExpect(jsonPath("creationTime",containsString(thing.getCreationTime().toString().replaceFirst("\\.0*$|(\\.\\d*?)0+$", "")))); //regex removes trailing zeros
+
+        verify(dataService).updateThing(argumentCaptor.capture());
+        assertEquals(1, argumentCaptor.getValue().getId());
+        assertEquals("newName", argumentCaptor.getValue().getName());
     }
 
     @Test
@@ -104,6 +114,10 @@ public class ControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"newName\",\"id\": \"1\"}"))
                 .andExpect(status().isBadRequest());
+
+        verify(dataService).updateThing(argumentCaptor.capture());
+        assertEquals(1, argumentCaptor.getValue().getId());
+        assertEquals("newName", argumentCaptor.getValue().getName());
     }
 
     @Test
@@ -114,6 +128,10 @@ public class ControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"newName\",\"id\": \"1\"}"))
                 .andExpect(status().isNotFound());
+
+        verify(dataService).updateThing(argumentCaptor.capture());
+        assertEquals(1, argumentCaptor.getValue().getId());
+        assertEquals("newName", argumentCaptor.getValue().getName());
     }
 
     @Test
@@ -122,6 +140,8 @@ public class ControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"id\": \"1\"}"))
                 .andExpect(status().isOk());
+
+        verify(dataService).deleteThing(1);
     }
 
     @Test
@@ -132,5 +152,7 @@ public class ControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"id\": \"1\"}"))
                 .andExpect(status().isNotFound());
+
+        verify(dataService).deleteThing(1);
     }
 }
